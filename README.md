@@ -1,5 +1,6 @@
 # QualcommSerialportTool
 QualcommSerialportTool
+
 This tool is designed to write SN Serial Number,WIFI mac address or Bluetooth hardware address to Android Development Board which is based on the Qualcomm SOC.
 Follonging comes the details instructions to write these Serial Numbers:
 
