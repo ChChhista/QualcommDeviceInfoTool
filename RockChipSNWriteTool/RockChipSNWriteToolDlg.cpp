@@ -18,7 +18,7 @@
 #endif
 
 
-
+static INT opeMode = CRockChipSNWriteToolDlg::__WRITE;
 // CAboutDlg dialog used for App About
 MetaData g_Tmp;
 MetaData wifi_g_Tmp;
@@ -91,6 +91,7 @@ BEGIN_MESSAGE_MAP(CRockChipSNWriteToolDlg, CDialogEx)
 	//ON_REGISTERED_MESSAGE(SetAutoMaticMode, OnSetToAutomaticMode)
 	ON_MESSAGE(SetAutoMaticMode, OnNotifySetAutomaticMode)
 	ON_COMMAND(ID_32771,OnModeClicked)
+	ON_COMMAND(ID_32772, OnReadClicked)
 END_MESSAGE_MAP()
 LRESULT	CRockChipSNWriteToolDlg::OnNotifySetAutomaticMode(WPARAM wParam, LPARAM lParam)
 {
@@ -248,6 +249,16 @@ BOOL CRockChipSNWriteToolDlg::WriteToSerialPortReqHandler1()
 		AfxMessageBox(L"Modem句柄错误");
 		return FALSE;
 	}
+	if (::opeMode == CRockChipSNWriteToolDlg::__READ)
+	{
+		sprintf(Command, READSNNUMBERCMD);
+		WriteFile(p_Qualcom, Command, strlen(Command), &WrittenBytes, NULL);
+		ReadFile(p_Qualcom, Command, MAX_PATH, &WrittenBytes, NULL);
+		//swprintf_s(tmp, L"写入设备序列号%lld成功！", Num);
+		m_listbox.AddString(tmp);
+		g_Tmp.curDigital++;
+		return TRUE;
+	}
 	/*if (lstrlenW(prefix)!=0&&strSN.Find(prefix) == -1)
 	{
 		AfxMessageBox(L"起始号码不包含前缀"); return FALSE;
@@ -276,6 +287,7 @@ BOOL CRockChipSNWriteToolDlg::WriteToSerialPortReqHandler1()
 	{
 		Num = g_Tmp.curDigital;
 		endNum = g_Tmp.endDigital;
+		ZeroMemory(Command, sizeof(CHAR) * MAX_PATH);
 		if (Num > endNum) { AfxMessageBox(L"序列号已经写完"); return FALSE; }
 		if (!g_Tmp.Option)
 		{
@@ -288,12 +300,12 @@ BOOL CRockChipSNWriteToolDlg::WriteToSerialPortReqHandler1()
 		swprintf_s(tmp, L"写入设备序列号%lld成功！", Num);
 		m_listbox.AddString(tmp);
 		g_Tmp.curDigital++;
-		return TRUE;
 	}
-	else if (MetaData::WIFIMODE)
+	if (MetaData::WIFIMODE)
 	{
 		Num = wifi_g_Tmp.curDigital;
 		endNum = wifi_g_Tmp.endDigital;
+		ZeroMemory(Command, sizeof(CHAR) * MAX_PATH);
 		if (Num > endNum) { AfxMessageBox(L"序列号已经写完"); return FALSE; }
 		if (!wifi_g_Tmp.Option)
 		{
@@ -312,18 +324,24 @@ BOOL CRockChipSNWriteToolDlg::WriteToSerialPortReqHandler1()
 			}
 			sprintf(Command,WIFISNCOMMAND, psz_buffer);	
 		}
-		else sprintf(Command, "AT+LCTSN=1,12,\"%ws%ws%lld\"\r", wifi_g_Tmp.prefix.GetBuffer(), wifi_g_Tmp.zeroNum.GetBuffer(),Num);
+		else sprintf(Command, "AT+LCTSN=1,12,\"%llx\"\r",Num);
 		WriteFile(p_Qualcom, Command, strlen(Command), &WrittenBytes, NULL);
 		ReadFile(p_Qualcom, Command, MAX_PATH, &WrittenBytes, NULL);
-		swprintf_s(Comment, L"第%lld台机器写入WIFI序列号 %S成功！", Num, Command);
+		swprintf_s(Comment, L"写入WIFI序列号 %llx成功！", Num);
+		if (strstr(Command, "ERROR"))
+		{
+			AfxMessageBox(L"Wifi 序列号写入失败");
+			m_listbox.AddString(L"Wifi 序列号写入失败");
+			return FALSE;
+		}
 		m_listbox.AddString(Comment);
 		wifi_g_Tmp.curDigital++;
-		return TRUE;
 	}
-	else if (MetaData::SNMODE)
+	if (MetaData::BTMODE)
 	{
 		Num = bt_g_Tmp.curDigital;
 		endNum = bt_g_Tmp.endDigital;
+		ZeroMemory(Command, sizeof(CHAR) * MAX_PATH);
 		if (Num > endNum) { AfxMessageBox(L"序列号已经写完"); return FALSE; }
 		if (!bt_g_Tmp.Option)
 		{
@@ -341,13 +359,20 @@ BOOL CRockChipSNWriteToolDlg::WriteToSerialPortReqHandler1()
 				return  FALSE;
 			}
 			sprintf(Command,BTSNCOMMAND, psz_buffer);
-		}else sprintf(Command, "AT+LCTSN=1,10,\"%ws%ws%lld\"\r", bt_g_Tmp.prefix.GetBuffer(), bt_g_Tmp.zeroNum.GetBuffer(), Num);
+		}else sprintf(Command, "AT+LCTSN=1,10,\"%llx\"\r", Num);
 		WriteFile(p_Qualcom, Command, strlen(Command), &WrittenBytes, NULL);
 		ReadFile(p_Qualcom, Command, MAX_PATH, &WrittenBytes, NULL);
 		bt_g_Tmp.curDigital++;
-		swprintf_s(Comment, L"第%lld台机器写入蓝牙序列号 %S成功！", Num, Command);
+		swprintf_s(Comment, L"写入蓝牙序列号 %llx成功！", Num);
+		if (strstr(Command, "ERROR"))
+		{
+			AfxMessageBox(L"Wifi 序列号写入失败");
+			m_listbox.AddString(L"Wifi 序列号写入失败");
+			return FALSE;
+		}
 		m_listbox.AddString(Comment);
-		return TRUE;
+		m_listbox.SetCurSel(m_listbox.GetCount() - 1);
+		
 	}
 #ifndef _DEBUG
 	VMProtectEnd();
@@ -396,6 +421,12 @@ BOOL CRockChipSNWriteToolDlg::ReadFromSerialPort(TCHAR*)
 void CRockChipSNWriteToolDlg::OnModeClicked()
 {
 	modeDlg.DoModal();
+}
+void CRockChipSNWriteToolDlg::OnReadClicked()
+{
+	//::opeMode = CRockChipSNWriteToolDlg::__READ;
+	//m_button[2].SetWindowTextW(L"READ");
+
 }
 void CRockChipSNWriteToolDlg::OnWriteSNButtonClicked()
 {

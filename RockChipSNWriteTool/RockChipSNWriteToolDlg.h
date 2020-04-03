@@ -16,13 +16,18 @@ public:
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ROCKCHIPSNWRITETOOL_DIALOG };
 #endif
-
+	enum opeMode
+	{
+		__WRITE = 1,
+		__READ = 2,
+	};
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
 
 // Implementation
 protected:
+
 	HICON m_hIcon;
 	CMenu m_menu;
 	CStatic m_label[16];
@@ -55,6 +60,7 @@ protected:
 	afx_msg void OnReadSimStateClicked();
 	afx_msg void OnPaint();
 	afx_msg void OnModeClicked();
+	afx_msg void OnReadClicked();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 };

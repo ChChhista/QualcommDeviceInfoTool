@@ -1,6 +1,7 @@
 #pragma once
 #include "windows.h"
 #include "framework.h"
+#define COPYRIGHT "Copyright Belongs To destinyhu1996@gmail.com [Xiaohu]"
 #define SNCOMMAND "AT+SYSCMD=lserialn%s\r"
 #define WIFISNCOMMAND "AT+LCTSN=1,12,\"%s\"\r"
 #define BTSNCOMMAND "AT+LCTSN=1,10,\"%s\"\r"
@@ -9,6 +10,7 @@
 #define SIM1NOTHOTPLUGCMD "AT+SIMSWAPEN=0,1\r"
 #define SIM2NOTHOTPLUGCMD "AT+SIMSWAPEN=0,2\r"
 #define READSIMSTATE "AT+SIMSWAPEN?\r"
+#define READSNNUMBERCMD "AT+SYSCMD=readsn"
 #define APPNAME L"SerialNumberConfig"
 #define WIFIAPPNAME L"WifiNumberConfig"
 #define BTAPPNAME L"BTNumberConfig"
@@ -145,9 +147,9 @@ public:
 		ret = GetPrivateProfileString(appname, REMAINSN, NULL, T_path, MAX_PATH, CONFILENAME);
 		this->Remain = _wtoi(T_path);
 		ret = GetPrivateProfileString(appname, SERIALCURNUM, NULL, T_path, MAX_PATH, CONFILENAME);
-		this->curDigital = _wtoi(T_path);
+		this->curDigital = wcstoll(T_path,NULL,10);
 		ret = GetPrivateProfileString(appname, SERIALENDNUM, NULL, T_path, MAX_PATH, CONFILENAME);
-		this->endDigital = _wtoi(T_path);
+		this->endDigital = wcstoll(T_path, NULL, 10);
 		ret = GetPrivateProfileString(appname, ZERONUM, NULL, T_path, MAX_PATH, CONFILENAME);
 		this->zeroNum =T_path;
 		return TRUE;
